@@ -1,0 +1,31 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "nodemon ./bin/www"
+  },
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "body-parser": "^1.18.3",
+    "chrome-launcher": "^0.10.5",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.9",
+    "express": "~4.16.0",
+    "http-errors": "~1.6.2",
+    "lighthouse": "^4.2.0",
+    "lighthouse-logger": "^1.2.0",
+    "mongodb": "^3.2.1",
+    "mongoose": "^5.4.19",
+    "morgan": "~1.9.0",
+    "node-cron": "^2.0.3",
+    "pug": "2.0.0-beta11",
+    "yuicompressor": "^2.4.8"
+  },
+  "devDependencies": {
+    "@types/express": "^4.16.1"
+  }
+}
