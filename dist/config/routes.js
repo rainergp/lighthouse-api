@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = require("express");
 var report_router_1 = require("../api/report/report.router");
+var subscription_router_1 = require("../api/subscription/subscription.router");
 var Routes = /** @class */ (function () {
     function Routes(app) {
         // Set router
@@ -14,6 +15,7 @@ var Routes = /** @class */ (function () {
     // Set all app routes
     Routes.prototype.setAllRoutes = function () {
         // Your routes goes here
+        this.app.use('/api/subscription', subscription_router_1.default);
         this.app.use('/api/report', report_router_1.default);
         // Set main route for any other route found
         this.setMainRoute();

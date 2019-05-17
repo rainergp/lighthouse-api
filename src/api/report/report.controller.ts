@@ -8,12 +8,6 @@ import Model from './report.model';
 
 export default class ReportController {
 
-    /**
-     * Get all
-     * @param {*} req
-     * @param {*} res
-     * @param {*} next
-     */
     // public static async getAll(req: Request, res: Response, next: NextFunction) {
     //
     //     try {
@@ -39,12 +33,6 @@ export default class ReportController {
     //     }
     // }
 
-    /**
-     * Create
-     * @param {*} req
-     * @param {*} res
-     * @param {*} next
-     */
     // public static async create(req: Request, res: Response, next: NextFunction) {
     //
     //     //
@@ -65,22 +53,22 @@ export default class ReportController {
     // }
 
     /**
-     * Create
+     * Get Report
      * @param {*} req
      * @param {*} res
      * @param {*} next
      */
     public static async getReport(req: Request, res: Response, next: NextFunction) {
 
-        const flags = {
-            logLevel: 'info',
-            chromeFlags: ['--headless', '--no-sandbox', '--disable-setuid-sandbox'],
-            throttlingMethod: 'provided',
-            disableDeviceEmulation: false,
-            emulatedFormFactor: 'desktop'
-
-            // onlyCategories: ['performance']
-        };
+        // const flags = {
+        //     logLevel: 'info',
+        //     chromeFlags: ['--headless', '--no-sandbox', '--disable-setuid-sandbox'],
+        //     throttlingMethod: 'provided',
+        //     disableDeviceEmulation: false,
+        //     emulatedFormFactor: 'desktop'
+        //
+        //     // onlyCategories: ['performance']
+        // };
 
         // /** @type {LH.Config.Json} */
         // const config = {
@@ -104,11 +92,20 @@ export default class ReportController {
         // ],
         // };
 
-        LighthouseLogger.setLevel(flags.logLevel);
+        // LighthouseLogger.setLevel(flags.logLevel);
+        //
+        // ReportController.prototype.launchChromeAndRunLighthouse('https://www.celebritycruises.com', flags).then(result => {
+        //     res.json(result)
+        // });
 
-        ReportController.prototype.launchChromeAndRunLighthouse('https://www.celebritycruises.com', flags).then(result => {
-            res.json(result)
-        });
+        const notificationPayload = {
+            notification: {
+                title: 'New Notification',
+                body: 'This is the body of the notification',
+                icon: 'assets/icons/icon-512x512.png',
+            },
+        }
+
     }
 
     private launchChromeAndRunLighthouse(url: string, flags: any, config = null) {

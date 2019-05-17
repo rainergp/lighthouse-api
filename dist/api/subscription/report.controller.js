@@ -42,6 +42,12 @@ var fs = require("fs");
 var ReportController = /** @class */ (function () {
     function ReportController() {
     }
+    /**
+     * Get all
+     * @param {*} req
+     * @param {*} res
+     * @param {*} next
+     */
     // public static async getAll(req: Request, res: Response, next: NextFunction) {
     //
     //     try {
@@ -66,6 +72,12 @@ var ReportController = /** @class */ (function () {
     //         });
     //     }
     // }
+    /**
+     * Create
+     * @param {*} req
+     * @param {*} res
+     * @param {*} next
+     */
     // public static async create(req: Request, res: Response, next: NextFunction) {
     //
     //     //
@@ -85,22 +97,64 @@ var ReportController = /** @class */ (function () {
     //     });
     // }
     /**
-     * Get Report
+     * Create
+     * @param {*} req
+     * @param {*} res
+     * @param {*} next
+     */
+    ReportController.subscribe = function (req, res, next) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                res.json('{"response": "subscribe"}');
+                return [2 /*return*/];
+            });
+        });
+    };
+    /**
+     * Create
      * @param {*} req
      * @param {*} res
      * @param {*} next
      */
     ReportController.getReport = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
-            var notificationPayload;
             return __generator(this, function (_a) {
-                notificationPayload = {
-                    notification: {
-                        title: 'New Notification',
-                        body: 'This is the body of the notification',
-                        icon: 'assets/icons/icon-512x512.png',
-                    },
-                };
+                // const flags = {
+                //     logLevel: 'info',
+                //     chromeFlags: ['--headless', '--no-sandbox', '--disable-setuid-sandbox'],
+                //     throttlingMethod: 'provided',
+                //     disableDeviceEmulation: false,
+                //     emulatedFormFactor: 'desktop'
+                //
+                //     // onlyCategories: ['performance']
+                // };
+                // /** @type {LH.Config.Json} */
+                // const config = {
+                // 	extends: 'lighthouse:default',
+                // settings: {
+                // 	maxWaitForLoad: 35 * 1000,
+                // 	emulatedFormFactor: 'desktop',
+                // 	throttling: {
+                // 		rttMs: 40,
+                // 		throughputKbps: 10 * 1024,
+                // 		cpuSlowdownMultiplier: 1,
+                // 	},
+                // 	skipAudits: ['uses-http2'],
+                // },
+                // audits: [0000
+                // 	{path: 'metrics/first-contentful-paint', options: {scorePODR: 800, scoreMedian: 1600}},
+                // 	{path: 'metrics/first-meaningful-paint', options: {scorePODR: 800, scoreMedian: 1600}},
+                // 	{path: 'metrics/speed-index', options: {scorePODR: 1100, scoreMedian: 2300}},
+                // 	{path: 'metrics/interactive', options: {scorePODR: 2000, scoreMedian: 4500}},
+                // 	{path: 'metrics/first-cpu-idle', options: {scorePODR: 2000, scoreMedian: 4500}},
+                // ],
+                // };
+                // LighthouseLogger.setLevel(flags.logLevel);
+                //
+                // ReportController.prototype.launchChromeAndRunLighthouse('https://www.celebritycruises.com', flags).then(result => {
+                //     res.json(result)
+                // });
+                res.json('{"response": "report"}');
                 return [2 /*return*/];
             });
         });

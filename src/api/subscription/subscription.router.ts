@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import ReportController from './report.controller';
+import SubscriptionController from './subscription.controller';
 
-export class ReportRouter {
+export class SubscriptionRouter {
 
     public router: Router;
 
@@ -14,12 +14,12 @@ export class ReportRouter {
 
      // Init all routes in this router
     init() {
-        this.router.get('/', ReportController.getReport);
+        this.router.post('/', SubscriptionController.postSubscription);
     }
 }
 
 // Create Router and export its configured Express.Router
-const reportRoutes = new ReportRouter();
-reportRoutes.init();
+const subscriptionRoutes = new SubscriptionRouter();
+subscriptionRoutes.init();
 
-export default reportRoutes.router;
+export default subscriptionRoutes.router;

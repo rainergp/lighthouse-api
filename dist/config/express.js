@@ -7,6 +7,7 @@ var express = require("express");
 var logger = require("morgan");
 var path = require("path");
 var mongoose = require("mongoose");
+var cors = require("cors");
 var routes_1 = require("./routes");
 var Express = /** @class */ (function () {
     function Express() {
@@ -54,6 +55,8 @@ var Express = /** @class */ (function () {
     };
     // Set middleware
     Express.prototype.setMiddleware = function () {
+        // Add cors
+        this.app.use(cors());
         // Add logging
         this.app.use(logger("dev"));
         // Add body parser

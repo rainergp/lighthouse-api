@@ -5,12 +5,14 @@ import * as express from "express";
 import * as logger from "morgan";
 import * as path from "path";
 import * as mongoose from "mongoose";
+import * as cors from "cors";
+import * as webPush from "web-push";
 import Routes from "./routes";
 
 class Express {
 
     public app: express.Express;
-    private envFile = 'src/.env';
+    private envFile = 'src/config/env/.env';
 
     constructor() {
 
@@ -34,6 +36,9 @@ class Express {
 
         // Routes
         this.setRoutes();
+
+        // Vapid Details
+        this.setVapidDetails();
     }
 
     // Set env from .env or .env.${NODE_ENV} file using dotenv
@@ -71,6 +76,9 @@ class Express {
     // Set middleware
     private setMiddleware() {
 
+        // Add cors
+        this.app.use(cors());
+
         // Add logging
         this.app.use(logger("dev"));
 
@@ -95,6 +103,11 @@ class Express {
 
         // Create Routes, and export its configured Express.Router
         new Routes(this.app);
+    }
+
+    // Set Vapid Details
+    private setVapidDetails() {
+        webPush.setVapidDetails('mailto:you@domain.com', process.env.VAPID_PUBLIC, process.env.VAPID_PRIVATE);
     }
 }
 

@@ -35,80 +35,28 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var example_model_1 = require("./example.model");
-var ExampleController = /** @class */ (function () {
-    function ExampleController() {
+var fakeDatabase = [];
+var SubscriptionController = /** @class */ (function () {
+    function SubscriptionController() {
     }
     /**
-     * Get all
-     * @param {*} req
-     * @param {*} res
-     * @param {*} next
+     * Post Subscription
+     * @param req
+     * @param res
+     * @param next
      */
-    ExampleController.getAll = function (req, res, next) {
+    SubscriptionController.postSubscription = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
-            var result, err_1;
+            var subscription;
             return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, example_model_1.default.find().exec()];
-                    case 1:
-                        result = _a.sent();
-                        // 
-                        // Response
-                        res.send({
-                            message: 'it works! We got all examples',
-                            result: result
-                        });
-                        return [3 /*break*/, 3];
-                    case 2:
-                        err_1 = _a.sent();
-                        // 
-                        // Error response
-                        res.send({
-                            message: 'Could not get Examples',
-                            err: err_1
-                        });
-                        return [3 /*break*/, 3];
-                    case 3: return [2 /*return*/];
-                }
+                subscription = req.body;
+                fakeDatabase.push(subscription);
+                console.log('FakeDB: ', fakeDatabase);
+                return [2 /*return*/];
             });
         });
     };
-    /**
-     * Create
-     * @param {*} req
-     * @param {*} res
-     * @param {*} next
-     */
-    ExampleController.create = function (req, res, next) {
-        return __awaiter(this, void 0, void 0, function () {
-            var model;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        model = new example_model_1.default({
-                            title: 'Test title',
-                            subtitle: 'test subtitle'
-                        });
-                        // 
-                        // Save
-                        return [4 /*yield*/, model.save()];
-                    case 1:
-                        // 
-                        // Save
-                        _a.sent();
-                        res.send({
-                            message: 'Created!',
-                            model: model
-                        });
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    return ExampleController;
+    return SubscriptionController;
 }());
-exports.default = ExampleController;
-//# sourceMappingURL=example.controller.js.map
+exports.default = SubscriptionController;
+//# sourceMappingURL=subscription.controller.js.map

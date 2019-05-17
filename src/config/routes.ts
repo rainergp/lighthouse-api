@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import ReportRouter from '../api/report/report.router';
+import SubscriptionRouter from "../api/subscription/subscription.router";
 
 export default class Routes {
 
@@ -22,6 +23,7 @@ export default class Routes {
     setAllRoutes() {
 
         // Your routes goes here
+        this.app.use('/api/subscription', SubscriptionRouter);
         this.app.use('/api/report', ReportRouter);
 
         // Set main route for any other route found
