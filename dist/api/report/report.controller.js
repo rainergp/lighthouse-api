@@ -37,53 +37,16 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var ChromeLauncher = require("chrome-launcher");
 var Lighthouse = require("lighthouse");
+var LighthouseLogger = require("lighthouse-logger");
 var ReportGenerator = require("lighthouse/lighthouse-core/report/report-generator");
 var fs = require("fs");
+var webPush = require("web-push");
+var subscription_model_1 = require("../subscription/subscription.model");
+var report_model_1 = require("./report.model");
+var device_type_enum_1 = require("../../models/device-type.enum");
 var ReportController = /** @class */ (function () {
     function ReportController() {
     }
-    // public static async getAll(req: Request, res: Response, next: NextFunction) {
-    //
-    //     try {
-    //
-    //         //
-    //         // Get data
-    //         let result = await Model.find().exec();
-    //
-    //         //
-    //         // Response
-    //         res.send({
-    //             message: 'it works! We got all examples',
-    //             result: result
-    //         });
-    //     } catch (err) {
-    //
-    //         //
-    //         // Error response
-    //         res.send({
-    //             message: 'Could not get Examples',
-    //             err: err
-    //         });
-    //     }
-    // }
-    // public static async create(req: Request, res: Response, next: NextFunction) {
-    //
-    //     //
-    //     // Create model
-    //     let model = new Model({
-    //         title: 'Test title',
-    //         subtitle: 'test subtitle'
-    //     });
-    //
-    //     //
-    //     // Save
-    //     await model.save();
-    //
-    //     res.send({
-    //         message: 'Created!',
-    //         model: model
-    //     });
-    // }
     /**
      * Get Report
      * @param {*} req
@@ -92,20 +55,53 @@ var ReportController = /** @class */ (function () {
      */
     ReportController.getReport = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
-            var notificationPayload;
+            var flags;
             return __generator(this, function (_a) {
-                notificationPayload = {
-                    notification: {
-                        title: 'New Notification',
-                        body: 'This is the body of the notification',
-                        icon: 'assets/icons/icon-512x512.png',
-                    },
+                flags = {
+                    logLevel: 'info',
+                    chromeFlags: ['--headless', '--no-sandbox', '--disable-setuid-sandbox'],
+                    throttlingMethod: 'provided',
+                    disableDeviceEmulation: false,
+                    emulatedFormFactor: 'desktop'
+                    // onlyCategories: ['performance']
                 };
+                // /** @type {LH.Config.Json} */
+                // const config = {
+                // 	extends: 'lighthouse:default',
+                // settings: {
+                // 	maxWaitForLoad: 35 * 1000,
+                // 	emulatedFormFactor: 'desktop',
+                // 	throttling: {
+                // 		rttMs: 40,
+                // 		throughputKbps: 10 * 1024,
+                // 		cpuSlowdownMultiplier: 1,
+                // 	},
+                // 	skipAudits: ['uses-http2'],
+                // },
+                // audits: [0000
+                // 	{path: 'metrics/first-contentful-paint', options: {scorePODR: 800, scoreMedian: 1600}},
+                // 	{path: 'metrics/first-meaningful-paint', options: {scorePODR: 800, scoreMedian: 1600}},
+                // 	{path: 'metrics/speed-index', options: {scorePODR: 1100, scoreMedian: 2300}},
+                // 	{path: 'metrics/interactive', options: {scorePODR: 2000, scoreMedian: 4500}},
+                // 	{path: 'metrics/first-cpu-idle', options: {scorePODR: 2000, scoreMedian: 4500}},
+                // ],
+                // };
+                LighthouseLogger.setLevel(flags.logLevel);
+                ReportController.launchChromeAndRunLighthouse('https://www.celebritycruises.com', flags)
+                    .then(function (result) {
+                    var reportData = ReportController.parseData(result);
+                    ReportController.sendDataUpdateNotifications(reportData);
+                    res.send(true);
+                })
+                    .catch(function (error) {
+                    // TODO: Implement the error validation for the response
+                    console.log(error);
+                });
                 return [2 /*return*/];
             });
         });
     };
-    ReportController.prototype.launchChromeAndRunLighthouse = function (url, flags, config) {
+    ReportController.launchChromeAndRunLighthouse = function (url, flags, config) {
         if (config === void 0) { config = null; }
         return ChromeLauncher.launch({ chromeFlags: flags.chromeFlags }).then(function (chrome) {
             flags.port = chrome.port;
@@ -123,6 +119,75 @@ var ReportController = /** @class */ (function () {
                     }
                 });
                 return chrome.kill().then(function () { return results.lhr; });
+            });
+        });
+    };
+    ReportController.parseData = function (json) {
+        var firstContentfulPaint = json.audits['first-contentful-paint'], firstMeaningfulPaint = json.audits['first-meaningful-paint'], speedIndex = json.audits['speed-index'], firstCPUIdle = json.audits['first-cpu-idle'], interactive = json.audits['interactive'], estimatedInputLatency = json.audits['estimated-input-latency'], maxPotentialFID = json.audits['max-potential-fid'], categories = json.categories;
+        return new report_model_1.default({
+            deviceType: device_type_enum_1.DeviceType.Desktop,
+            requestedUrl: json.requestedUrl,
+            fetchTime: json.fetchTime,
+            metrics: {
+                firstContentfulPaint: {
+                    score: firstContentfulPaint.score,
+                    numericValue: firstContentfulPaint.numericValue,
+                    displayValue: firstContentfulPaint.displayValue
+                },
+                firstMeaningfulPaint: {
+                    score: firstMeaningfulPaint.score,
+                    numericValue: firstMeaningfulPaint.numericValue,
+                    displayValue: firstMeaningfulPaint.displayValue
+                },
+                speedIndex: {
+                    score: speedIndex.score,
+                    numericValue: speedIndex.numericValue,
+                    displayValue: speedIndex.displayValue
+                },
+                firstCPUIdle: {
+                    score: firstCPUIdle.score,
+                    numericValue: firstCPUIdle.numericValue,
+                    displayValue: firstCPUIdle.displayValue
+                },
+                interactive: {
+                    score: interactive.score,
+                    numericValue: interactive.numericValue,
+                    displayValue: interactive.displayValue
+                },
+                estimatedInputLatency: {
+                    score: estimatedInputLatency.score,
+                    numericValue: estimatedInputLatency.numericValue,
+                    displayValue: estimatedInputLatency.displayValue
+                },
+                maxPotentialFID: {
+                    score: maxPotentialFID.score,
+                    numericValue: maxPotentialFID.numericValue,
+                    displayValue: maxPotentialFID.displayValue
+                }
+            },
+            scores: {
+                performance: categories['performance'].score,
+                accessibility: categories['accessibility'].score,
+                bestPractices: categories['best-practices'].score,
+                SEO: categories['seo'].score,
+                PWA: categories['pwa'].score
+            }
+        });
+    };
+    ReportController.sendDataUpdateNotifications = function (reportData) {
+        var notificationPayload = {
+            notification: {
+                title: 'New Data',
+                body: 'Your application data has been updated.',
+                icon: 'assets/icons/icon-512x512.png',
+                // vibrate: [100, 50, 100],
+                data: reportData,
+            },
+        };
+        subscription_model_1.default.find({}, function (err, subscriptions) {
+            var promises = [];
+            subscriptions.forEach(function (subscription) {
+                promises.push(webPush.sendNotification(subscription, JSON.stringify(notificationPayload)));
             });
         });
     };

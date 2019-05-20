@@ -107,7 +107,7 @@ class Express {
 
     // Set Vapid Details
     private setVapidDetails() {
-        webPush.setVapidDetails('mailto:you@domain.com', process.env.VAPID_PUBLIC, process.env.VAPID_PRIVATE);
+        webPush.setVapidDetails('mailto:rainergonzalez@celebrity.com', process.env.VAPID_PUBLIC, process.env.VAPID_PRIVATE);
     }
 }
 

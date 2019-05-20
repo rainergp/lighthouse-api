@@ -1,13 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = require("mongoose");
-var DeviceType = {
-    DESKTOP: 'desktop',
-    MOBILE: 'mobile',
-};
 var schema = new mongoose_1.Schema({
     id: mongoose_1.Schema.Types.ObjectId,
-    deviceType: DeviceType,
+    deviceType: String,
     requestedUrl: String,
     fetchTime: Date,
     json: String,

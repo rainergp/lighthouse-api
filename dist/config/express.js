@@ -8,10 +8,11 @@ var logger = require("morgan");
 var path = require("path");
 var mongoose = require("mongoose");
 var cors = require("cors");
+var webPush = require("web-push");
 var routes_1 = require("./routes");
 var Express = /** @class */ (function () {
     function Express() {
-        this.envFile = 'src/.env';
+        this.envFile = 'src/config/env/.env';
         // ENV
         this.setEnv();
         // Mongo
@@ -26,6 +27,8 @@ var Express = /** @class */ (function () {
         this.setStaticFiles();
         // Routes
         this.setRoutes();
+        // Vapid Details
+        this.setVapidDetails();
     }
     // Set env from .env or .env.${NODE_ENV} file using dotenv
     Express.prototype.setEnv = function () {
@@ -74,6 +77,10 @@ var Express = /** @class */ (function () {
     Express.prototype.setRoutes = function () {
         // Create Routes, and export its configured Express.Router
         new routes_1.default(this.app);
+    };
+    // Set Vapid Details
+    Express.prototype.setVapidDetails = function () {
+        webPush.setVapidDetails('mailto:rainergonzalez@celebrity.com', process.env.VAPID_PUBLIC, process.env.VAPID_PRIVATE);
     };
     return Express;
 }());

@@ -35,7 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var fakeDatabase = [];
+var subscription_model_1 = require("./subscription.model");
 var SubscriptionController = /** @class */ (function () {
     function SubscriptionController() {
     }
@@ -47,12 +47,60 @@ var SubscriptionController = /** @class */ (function () {
      */
     SubscriptionController.postSubscription = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
-            var subscription;
             return __generator(this, function (_a) {
-                subscription = req.body;
-                fakeDatabase.push(subscription);
-                console.log('FakeDB: ', fakeDatabase);
+                if (!SubscriptionController.isPostRequestValid(req, res)) {
+                    return [2 /*return*/];
+                }
+                SubscriptionController.saveIfNotExist(req.body)
+                    .then(function (result) {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({ data: { success: true } }));
+                })
+                    .catch(function (err) {
+                    res.status(500);
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({
+                        error: {
+                            id: 'unable-to-save-subscription',
+                            message: 'Subscription received but failed to save it'
+                        }
+                    }));
+                });
                 return [2 /*return*/];
+            });
+        });
+    };
+    SubscriptionController.isPostRequestValid = function (req, res) {
+        if (!req.body || !req.body.endpoint) {
+            res.status(400);
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify({
+                error: {
+                    id: 'no-endpoint',
+                    message: 'Subscription must have an endpoint'
+                }
+            }));
+            return false;
+        }
+        return true;
+    };
+    SubscriptionController.saveIfNotExist = function (subscription) {
+        return new Promise(function (resolve, reject) {
+            // let options = { upsert: true, new: true, setDefaultsOnInsert: true };
+            // Subscription.findOneAndUpdate(subscription, subscription, options, function(error, result) {
+            //     if (error) {
+            //         reject(error);
+            //         return;
+            //     }
+            //
+            //     resolve(result);
+            // });
+            subscription_model_1.default.update({ endpoint: subscription.endpoint }, { $setOnInsert: subscription }, { upsert: true }, function (error, result) {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                resolve(result);
             });
         });
     };

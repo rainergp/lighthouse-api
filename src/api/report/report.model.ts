@@ -1,13 +1,9 @@
 import { Schema, model } from 'mongoose';
-
-const DeviceType = {
-    DESKTOP: 'desktop',
-    MOBILE: 'mobile',
-};
+import {DeviceType} from "../../models/device-type.enum";
 
 let schema: Schema = new Schema({
     id: Schema.Types.ObjectId,
-    deviceType: DeviceType,
+    deviceType: String,
     requestedUrl: String,
     fetchTime: Date,
     json: String,

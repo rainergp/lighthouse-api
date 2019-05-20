@@ -4,53 +4,13 @@ import * as Lighthouse from 'lighthouse';
 import * as LighthouseLogger from 'lighthouse-logger';
 import * as ReportGenerator from 'lighthouse/lighthouse-core/report/report-generator';
 import * as fs from 'fs';
-import Model from './report.model';
+import * as webPush from "web-push";
+import Subscription from '../subscription/subscription.model';
+import Report from './report.model';
+import {Schema} from "mongoose";
+import {DeviceType} from "../../models/device-type.enum";
 
 export default class ReportController {
-
-    // public static async getAll(req: Request, res: Response, next: NextFunction) {
-    //
-    //     try {
-    //
-    //         //
-    //         // Get data
-    //         let result = await Model.find().exec();
-    //
-    //         //
-    //         // Response
-    //         res.send({
-    //             message: 'it works! We got all examples',
-    //             result: result
-    //         });
-    //     } catch (err) {
-    //
-    //         //
-    //         // Error response
-    //         res.send({
-    //             message: 'Could not get Examples',
-    //             err: err
-    //         });
-    //     }
-    // }
-
-    // public static async create(req: Request, res: Response, next: NextFunction) {
-    //
-    //     //
-    //     // Create model
-    //     let model = new Model({
-    //         title: 'Test title',
-    //         subtitle: 'test subtitle'
-    //     });
-    //
-    //     //
-    //     // Save
-    //     await model.save();
-    //
-    //     res.send({
-    //         message: 'Created!',
-    //         model: model
-    //     });
-    // }
 
     /**
      * Get Report
@@ -60,15 +20,15 @@ export default class ReportController {
      */
     public static async getReport(req: Request, res: Response, next: NextFunction) {
 
-        // const flags = {
-        //     logLevel: 'info',
-        //     chromeFlags: ['--headless', '--no-sandbox', '--disable-setuid-sandbox'],
-        //     throttlingMethod: 'provided',
-        //     disableDeviceEmulation: false,
-        //     emulatedFormFactor: 'desktop'
-        //
-        //     // onlyCategories: ['performance']
-        // };
+        const flags = {
+            logLevel: 'info',
+            chromeFlags: ['--headless', '--no-sandbox', '--disable-setuid-sandbox'],
+            throttlingMethod: 'provided',
+            disableDeviceEmulation: false,
+            emulatedFormFactor: 'desktop'
+
+            // onlyCategories: ['performance']
+        };
 
         // /** @type {LH.Config.Json} */
         // const config = {
@@ -92,23 +52,24 @@ export default class ReportController {
         // ],
         // };
 
-        // LighthouseLogger.setLevel(flags.logLevel);
-        //
-        // ReportController.prototype.launchChromeAndRunLighthouse('https://www.celebritycruises.com', flags).then(result => {
-        //     res.json(result)
-        // });
+        LighthouseLogger.setLevel(flags.logLevel);
 
-        const notificationPayload = {
-            notification: {
-                title: 'New Notification',
-                body: 'This is the body of the notification',
-                icon: 'assets/icons/icon-512x512.png',
-            },
-        }
+        ReportController.launchChromeAndRunLighthouse('https://www.celebritycruises.com', flags)
+            .then(result => {
+
+                let reportData = ReportController.parseData(result);
+
+                ReportController.sendDataUpdateNotifications(reportData);
+                res.send(true);
+            })
+            .catch(error => {
+                // TODO: Implement the error validation for the response
+                console.log(error);
+            })
 
     }
 
-    private launchChromeAndRunLighthouse(url: string, flags: any, config = null) {
+    private static launchChromeAndRunLighthouse(url: string, flags: any, config = null) {
 
         return ChromeLauncher.launch({chromeFlags: flags.chromeFlags}).then(chrome => {
 
@@ -133,6 +94,98 @@ export default class ReportController {
 
                 return chrome.kill().then(() => results.lhr)
             })
+        });
+    }
+
+    private static parseData(json: any): any {
+
+        let firstContentfulPaint = json.audits['first-contentful-paint'],
+            firstMeaningfulPaint = json.audits['first-meaningful-paint'],
+            speedIndex = json.audits['speed-index'],
+            firstCPUIdle = json.audits['first-cpu-idle'],
+            interactive = json.audits['interactive'],
+            estimatedInputLatency = json.audits['estimated-input-latency'],
+            maxPotentialFID = json.audits['max-potential-fid'],
+            categories = json.categories;
+
+        return new Report({
+            deviceType: DeviceType.Desktop,
+            requestedUrl: json.requestedUrl,
+            fetchTime: json.fetchTime,
+
+            metrics: {
+                firstContentfulPaint: {
+                    score: firstContentfulPaint.score,
+                    numericValue: firstContentfulPaint.numericValue,
+                    displayValue: firstContentfulPaint.displayValue
+                },
+                firstMeaningfulPaint: {
+                    score: firstMeaningfulPaint.score,
+                    numericValue: firstMeaningfulPaint.numericValue,
+                    displayValue: firstMeaningfulPaint.displayValue
+                },
+                speedIndex: {
+                    score: speedIndex.score,
+                    numericValue: speedIndex.numericValue,
+                    displayValue: speedIndex.displayValue
+                },
+                firstCPUIdle: {
+                    score: firstCPUIdle.score,
+                    numericValue: firstCPUIdle.numericValue,
+                    displayValue: firstCPUIdle.displayValue
+                },
+                interactive: {
+                    score: interactive.score,
+                    numericValue: interactive.numericValue,
+                    displayValue: interactive.displayValue
+                },
+                estimatedInputLatency: {
+                    score: estimatedInputLatency.score,
+                    numericValue: estimatedInputLatency.numericValue,
+                    displayValue: estimatedInputLatency.displayValue
+                },
+                maxPotentialFID: {
+                    score: maxPotentialFID.score,
+                    numericValue: maxPotentialFID.numericValue,
+                    displayValue: maxPotentialFID.displayValue
+                }
+            },
+
+            scores: {
+                performance: categories['performance'].score,
+                accessibility: categories['accessibility'].score,
+                bestPractices: categories['best-practices'].score,
+                SEO: categories['seo'].score,
+                PWA: categories['pwa'].score
+            }
+        });
+    }
+
+    private static sendDataUpdateNotifications(reportData: object) {
+        const notificationPayload = {
+            notification: {
+                title: 'New Data',
+                body: 'Your application data has been updated.',
+                icon: 'assets/icons/icon-512x512.png',
+                // vibrate: [100, 50, 100],
+                data: reportData,
+                // actions: [{
+                //     action: 'explore',
+                //     title: 'Go to the site'
+                // }]
+            },
+        };
+
+        Subscription.find({}, (err, subscriptions) => {
+            const promises = [];
+            subscriptions.forEach((subscription: any) => {
+                promises.push(
+                    webPush.sendNotification(
+                        subscription,
+                        JSON.stringify(notificationPayload)
+                    )
+                )
+            });
         });
     }
 }
