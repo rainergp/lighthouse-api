@@ -50,17 +50,6 @@ export default class SubscriptionController {
     private static saveIfNotExist(subscription: any) {
         return new Promise((resolve, reject) => {
 
-            // let options = { upsert: true, new: true, setDefaultsOnInsert: true };
-
-            // Subscription.findOneAndUpdate(subscription, subscription, options, function(error, result) {
-            //     if (error) {
-            //         reject(error);
-            //         return;
-            //     }
-            //
-            //     resolve(result);
-            // });
-
             Subscription.update(
                 {endpoint: subscription.endpoint},
                 {$setOnInsert: subscription},

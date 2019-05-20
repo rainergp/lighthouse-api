@@ -87,10 +87,11 @@ var ReportController = /** @class */ (function () {
                 // ],
                 // };
                 LighthouseLogger.setLevel(flags.logLevel);
-                ReportController.launchChromeAndRunLighthouse('https://www.celebritycruises.com', flags)
-                    .then(function (result) {
-                    var reportData = ReportController.parseData(result);
-                    ReportController.sendDataUpdateNotifications(reportData);
+                ReportController.launchHeadlessChromeAndRunLighthouse('https://www.celebritycruises.com', flags)
+                    .then(function (results) {
+                    var parsedData = ReportController.parseData(results.lhr);
+                    ReportController.saveDataAndHTMLReport(results, parsedData);
+                    //ReportController.sendDataUpdateNotifications(reportData);
                     res.send(true);
                 })
                     .catch(function (error) {
@@ -101,7 +102,7 @@ var ReportController = /** @class */ (function () {
             });
         });
     };
-    ReportController.launchChromeAndRunLighthouse = function (url, flags, config) {
+    ReportController.launchHeadlessChromeAndRunLighthouse = function (url, flags, config) {
         if (config === void 0) { config = null; }
         return ChromeLauncher.launch({ chromeFlags: flags.chromeFlags }).then(function (chrome) {
             flags.port = chrome.port;
@@ -109,16 +110,7 @@ var ReportController = /** @class */ (function () {
                 // use results.lhr for the JS-consumable output
                 // use results.report for the HTML/JSON/CSV output as a string
                 // use results.artifacts for the trace/screenshots/other specific case you need (rarer)
-                var id = './reports/test';
-                var utcTimestamp = new Date().getTime();
-                var filename = id + "-" + utcTimestamp + ".html";
-                var html = ReportGenerator.generateReport(results.lhr, 'html');
-                fs.writeFile(filename, html, function (err) {
-                    if (err) {
-                        return console.log(err);
-                    }
-                });
-                return chrome.kill().then(function () { return results.lhr; });
+                return chrome.kill().then(function () { return results; });
             });
         });
     };
@@ -172,6 +164,26 @@ var ReportController = /** @class */ (function () {
                 SEO: categories['seo'].score,
                 PWA: categories['pwa'].score
             }
+        });
+    };
+    ReportController.saveDataAndHTMLReport = function (results, parsedData) {
+        return new Promise(function (resolve, reject) {
+            var report = new report_model_1.default(parsedData);
+            report.save()
+                .then(function (result) {
+                var id = './reports/' + result._doc._id.toString();
+                var filename = id + ".html";
+                var html = ReportGenerator.generateReport(results.lhr, 'html');
+                fs.writeFile(filename, html, function (err) {
+                    if (err) {
+                        return console.log(err);
+                    }
+                });
+                resolve(result);
+            })
+                .catch(function (error) {
+                reject(error);
+            });
         });
     };
     ReportController.sendDataUpdateNotifications = function (reportData) {

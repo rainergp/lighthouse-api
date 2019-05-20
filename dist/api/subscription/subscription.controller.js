@@ -86,15 +86,6 @@ var SubscriptionController = /** @class */ (function () {
     };
     SubscriptionController.saveIfNotExist = function (subscription) {
         return new Promise(function (resolve, reject) {
-            // let options = { upsert: true, new: true, setDefaultsOnInsert: true };
-            // Subscription.findOneAndUpdate(subscription, subscription, options, function(error, result) {
-            //     if (error) {
-            //         reject(error);
-            //         return;
-            //     }
-            //
-            //     resolve(result);
-            // });
             subscription_model_1.default.update({ endpoint: subscription.endpoint }, { $setOnInsert: subscription }, { upsert: true }, function (error, result) {
                 if (error) {
                     reject(error);

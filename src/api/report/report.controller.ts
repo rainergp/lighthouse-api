@@ -54,12 +54,14 @@ export default class ReportController {
 
         LighthouseLogger.setLevel(flags.logLevel);
 
-        ReportController.launchChromeAndRunLighthouse('https://www.celebritycruises.com', flags)
-            .then(result => {
+        ReportController.launchHeadlessChromeAndRunLighthouse('https://www.celebritycruises.com', flags)
+            .then(results => {
 
-                let reportData = ReportController.parseData(result);
+                let parsedData = ReportController.parseData(results.lhr);
 
-                ReportController.sendDataUpdateNotifications(reportData);
+                ReportController.saveDataAndHTMLReport(results, parsedData);
+
+                //ReportController.sendDataUpdateNotifications(reportData);
                 res.send(true);
             })
             .catch(error => {
@@ -69,7 +71,7 @@ export default class ReportController {
 
     }
 
-    private static launchChromeAndRunLighthouse(url: string, flags: any, config = null) {
+    private static launchHeadlessChromeAndRunLighthouse(url: string, flags: any, config = null) {
 
         return ChromeLauncher.launch({chromeFlags: flags.chromeFlags}).then(chrome => {
 
@@ -81,23 +83,12 @@ export default class ReportController {
                 // use results.report for the HTML/JSON/CSV output as a string
                 // use results.artifacts for the trace/screenshots/other specific case you need (rarer)
 
-                let id = './reports/test';
-                let utcTimestamp = new Date().getTime();
-                let filename = `${id}-${utcTimestamp}.html`;
-                let html = ReportGenerator.generateReport(results.lhr, 'html');
-
-                fs.writeFile(filename, html, function(err) {
-                    if (err) {
-                        return console.log(err);
-                    }
-                });
-
-                return chrome.kill().then(() => results.lhr)
+                return chrome.kill().then(() => results)
             })
         });
     }
 
-    private static parseData(json: any): any {
+    private static parseData(json): any {
 
         let firstContentfulPaint = json.audits['first-contentful-paint'],
             firstMeaningfulPaint = json.audits['first-meaningful-paint'],
@@ -159,6 +150,35 @@ export default class ReportController {
                 PWA: categories['pwa'].score
             }
         });
+    }
+
+    private static saveDataAndHTMLReport(results, parsedData) {
+
+        return new Promise((resolve, reject) => {
+
+            let report = new Report(parsedData);
+
+            report.save()
+                .then((result: any) => {
+
+                    let id = './reports/' + result._doc._id.toString();
+                    let filename = `${id}.html`;
+                    let html = ReportGenerator.generateReport(results.lhr, 'html');
+
+                    fs.writeFile(filename, html, function(err) {
+                        if (err) {
+                            return console.log(err);
+                        }
+                    });
+
+                    resolve(result);
+
+                })
+                .catch(error => {
+                    reject(error);
+                })
+        });
+
     }
 
     private static sendDataUpdateNotifications(reportData: object) {
