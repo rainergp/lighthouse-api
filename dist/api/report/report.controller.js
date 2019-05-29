@@ -55,16 +55,31 @@ var ReportController = /** @class */ (function () {
      */
     ReportController.getReport = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
-            var flags;
             return __generator(this, function (_a) {
-                flags = {
-                    logLevel: 'info',
-                    chromeFlags: ['--headless', '--no-sandbox', '--disable-setuid-sandbox'],
-                    throttlingMethod: 'provided',
-                    disableDeviceEmulation: false,
-                    emulatedFormFactor: 'desktop'
-                    // onlyCategories: ['performance']
-                };
+                report_model_1.default.find({}).sort({ _id: -1 }).limit(240).exec()
+                    // Report.find({}).sort({name: 'asc'}).exec()
+                    .then(function (data) {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({ data: data }));
+                })
+                    .catch(function (error) {
+                    res.status(500);
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify(error));
+                });
+                return [2 /*return*/];
+            });
+        });
+    };
+    /**
+     * Post Report
+     * @param {*} req
+     * @param {*} res
+     * @param {*} next
+     */
+    ReportController.postReport = function (req, res, next) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
                 // /** @type {LH.Config.Json} */
                 // const config = {
                 // 	extends: 'lighthouse:default',
@@ -86,20 +101,47 @@ var ReportController = /** @class */ (function () {
                 // 	{path: 'metrics/first-cpu-idle', options: {scorePODR: 2000, scoreMedian: 4500}},
                 // ],
                 // };
-                LighthouseLogger.setLevel(flags.logLevel);
-                ReportController.launchHeadlessChromeAndRunLighthouse('https://www.celebritycruises.com', flags)
+                LighthouseLogger.setLevel(this.flags.logLevel);
+                ReportController.launchHeadlessChromeAndRunLighthouse(this.url, this.flags)
                     .then(function (results) {
                     var parsedData = ReportController.parseData(results.lhr);
-                    ReportController.saveDataAndHTMLReport(results, parsedData);
-                    //ReportController.sendDataUpdateNotifications(reportData);
+                    ReportController.saveDataAndHTMLReport(results, parsedData)
+                        .then(function () {
+                        ReportController.sendNotifications();
+                    })
+                        .catch(function (error) {
+                        res.status(500);
+                        res.setHeader('Content-Type', 'application/json');
+                        res.send(JSON.stringify(error));
+                    });
                     res.send(true);
                 })
                     .catch(function (error) {
-                    // TODO: Implement the error validation for the response
-                    console.log(error);
+                    res.status(500);
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify(error));
                 });
                 return [2 /*return*/];
             });
+        });
+    };
+    ReportController.runCronJobReport = function () {
+        LighthouseLogger.setLevel(this.flags.logLevel);
+        ReportController.launchHeadlessChromeAndRunLighthouse(this.url, this.flags)
+            .then(function (results) {
+            var parsedData = ReportController.parseData(results.lhr);
+            ReportController.saveDataAndHTMLReport(results, parsedData)
+                .then(function () {
+                ReportController.sendNotifications();
+            })
+                .catch(function (error) {
+                //TODO: Implement error handler
+                console.log(error);
+            });
+        })
+            .catch(function (error) {
+            //TODO: Implement error handler
+            console.log(error);
         });
     };
     ReportController.launchHeadlessChromeAndRunLighthouse = function (url, flags, config) {
@@ -186,23 +228,36 @@ var ReportController = /** @class */ (function () {
             });
         });
     };
-    ReportController.sendDataUpdateNotifications = function (reportData) {
+    ReportController.sendNotifications = function () {
         var notificationPayload = {
             notification: {
                 title: 'New Data',
                 body: 'Your application data has been updated.',
                 icon: 'assets/icons/icon-512x512.png',
-                // vibrate: [100, 50, 100],
-                data: reportData,
             },
         };
         subscription_model_1.default.find({}, function (err, subscriptions) {
             var promises = [];
             subscriptions.forEach(function (subscription) {
-                promises.push(webPush.sendNotification(subscription, JSON.stringify(notificationPayload)));
+                promises.push(webPush.sendNotification(subscription, JSON.stringify(notificationPayload))
+                    .then(function (result) {
+                    console.log(result);
+                })
+                    .catch(function (error) {
+                    console.log(error);
+                }));
             });
         });
     };
+    ReportController.flags = {
+        logLevel: 'info',
+        chromeFlags: ['--headless', '--no-sandbox', '--disable-setuid-sandbox'],
+        throttlingMethod: 'provided',
+        disableDeviceEmulation: false,
+        emulatedFormFactor: 'desktop'
+        // onlyCategories: ['performance']
+    };
+    ReportController.url = 'https://www.celebritycruises.com';
     return ReportController;
 }());
 exports.default = ReportController;

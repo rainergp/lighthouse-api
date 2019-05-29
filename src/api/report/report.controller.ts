@@ -12,6 +12,18 @@ import {DeviceType} from "../../models/device-type.enum";
 
 export default class ReportController {
 
+    private static flags = {
+        logLevel: 'info',
+        chromeFlags: ['--headless', '--no-sandbox', '--disable-setuid-sandbox'],
+        throttlingMethod: 'provided',
+        disableDeviceEmulation: false,
+        emulatedFormFactor: 'desktop'
+
+        // onlyCategories: ['performance']
+    };
+
+    private static url = 'https://www.celebritycruises.com';
+
     /**
      * Get Report
      * @param {*} req
@@ -19,16 +31,27 @@ export default class ReportController {
      * @param {*} next
      */
     public static async getReport(req: Request, res: Response, next: NextFunction) {
+        Report.find({}).sort({_id: -1}).limit(240).exec()
+        // Report.find({}).sort({name: 'asc'}).exec()
+            .then(data => {
+                res.setHeader('Content-Type', 'application/json');
+                res.send(JSON.stringify({ data: data }));
+            })
+            .catch(error => {
+                res.status(500);
+                res.setHeader('Content-Type', 'application/json');
+                res.send(JSON.stringify(error));
+            });
 
-        const flags = {
-            logLevel: 'info',
-            chromeFlags: ['--headless', '--no-sandbox', '--disable-setuid-sandbox'],
-            throttlingMethod: 'provided',
-            disableDeviceEmulation: false,
-            emulatedFormFactor: 'desktop'
+    }
 
-            // onlyCategories: ['performance']
-        };
+    /**
+     * Post Report
+     * @param {*} req
+     * @param {*} res
+     * @param {*} next
+     */
+    public static async postReport(req: Request, res: Response, next: NextFunction) {
 
         // /** @type {LH.Config.Json} */
         // const config = {
@@ -52,23 +75,54 @@ export default class ReportController {
         // ],
         // };
 
-        LighthouseLogger.setLevel(flags.logLevel);
+        LighthouseLogger.setLevel(this.flags.logLevel);
 
-        ReportController.launchHeadlessChromeAndRunLighthouse('https://www.celebritycruises.com', flags)
+        ReportController.launchHeadlessChromeAndRunLighthouse(this.url, this.flags)
             .then(results => {
 
                 let parsedData = ReportController.parseData(results.lhr);
 
-                ReportController.saveDataAndHTMLReport(results, parsedData);
+                ReportController.saveDataAndHTMLReport(results, parsedData)
+                    .then(() => {
+                        ReportController.sendNotifications();
+                    })
+                    .catch(error => {
+                        res.status(500);
+                        res.setHeader('Content-Type', 'application/json');
+                        res.send(JSON.stringify(error));
+                    });
 
-                //ReportController.sendDataUpdateNotifications(reportData);
                 res.send(true);
             })
             .catch(error => {
-                // TODO: Implement the error validation for the response
-                console.log(error);
+                res.status(500);
+                res.setHeader('Content-Type', 'application/json');
+                res.send(JSON.stringify(error));
             })
 
+    }
+
+    public static runCronJobReport() {
+        LighthouseLogger.setLevel(this.flags.logLevel);
+
+        ReportController.launchHeadlessChromeAndRunLighthouse(this.url, this.flags)
+            .then(results => {
+
+                let parsedData = ReportController.parseData(results.lhr);
+
+                ReportController.saveDataAndHTMLReport(results, parsedData)
+                    .then(() => {
+                        ReportController.sendNotifications();
+                    })
+                    .catch(error => {
+                        //TODO: Implement error handler
+                        console.log(error)
+                    });
+            })
+            .catch(error => {
+                //TODO: Implement error handler
+                console.log(error)
+            })
     }
 
     private static launchHeadlessChromeAndRunLighthouse(url: string, flags: any, config = null) {
@@ -181,14 +235,14 @@ export default class ReportController {
 
     }
 
-    private static sendDataUpdateNotifications(reportData: object) {
+    private static sendNotifications() {
         const notificationPayload = {
             notification: {
                 title: 'New Data',
                 body: 'Your application data has been updated.',
                 icon: 'assets/icons/icon-512x512.png',
                 // vibrate: [100, 50, 100],
-                data: reportData,
+                // data: ,
                 // actions: [{
                 //     action: 'explore',
                 //     title: 'Go to the site'
@@ -204,8 +258,15 @@ export default class ReportController {
                         subscription,
                         JSON.stringify(notificationPayload)
                     )
+                    .then(result => {
+                        console.log(result)
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    })
                 )
             });
         });
     }
+
 }

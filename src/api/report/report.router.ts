@@ -15,6 +15,7 @@ export class ReportRouter {
      // Init all routes in this router
     init() {
         this.router.get('/', ReportController.getReport);
+        this.router.post('/', ReportController.postReport);
     }
 }
 

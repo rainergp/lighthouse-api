@@ -8,6 +8,8 @@ import * as mongoose from "mongoose";
 import * as cors from "cors";
 import * as webPush from "web-push";
 import Routes from "./routes";
+import {CronJob} from 'cron';
+import ReportController from "../api/report/report.controller";
 
 class Express {
 
@@ -39,6 +41,8 @@ class Express {
 
         // Vapid Details
         this.setVapidDetails();
+
+        this.setCronJob();
     }
 
     // Set env from .env or .env.${NODE_ENV} file using dotenv
@@ -48,7 +52,7 @@ class Express {
         if (process.env.NODE_ENV !== 'production') this.envFile += '.' + process.env.NODE_ENV;
 
         // Set env from file
-        dotenv.config({ path: this.envFile });
+        dotenv.config({path: this.envFile});
     }
 
     // Connect to mongo
@@ -84,7 +88,7 @@ class Express {
 
         // Add body parser
         this.app.use(bodyParser.json());
-        this.app.use(bodyParser.urlencoded({ extended: false }));
+        this.app.use(bodyParser.urlencoded({extended: false}));
 
         // Add cookie parser
         this.app.use(cookieParser());
@@ -108,6 +112,12 @@ class Express {
     // Set Vapid Details
     private setVapidDetails() {
         webPush.setVapidDetails('mailto:rainergonzalez@celebrity.com', process.env.VAPID_PUBLIC, process.env.VAPID_PRIVATE);
+    }
+
+    private setCronJob() {
+        new CronJob('0,15,30,45 * * * *', () => {
+            ReportController.runCronJobReport();
+        }, null, true, 'UTC', this);
     }
 }
 

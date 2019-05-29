@@ -10,6 +10,8 @@ var mongoose = require("mongoose");
 var cors = require("cors");
 var webPush = require("web-push");
 var routes_1 = require("./routes");
+var cron_1 = require("cron");
+var report_controller_1 = require("../api/report/report.controller");
 var Express = /** @class */ (function () {
     function Express() {
         this.envFile = 'src/config/env/.env';
@@ -29,6 +31,7 @@ var Express = /** @class */ (function () {
         this.setRoutes();
         // Vapid Details
         this.setVapidDetails();
+        this.setCronJob();
     }
     // Set env from .env or .env.${NODE_ENV} file using dotenv
     Express.prototype.setEnv = function () {
@@ -81,6 +84,11 @@ var Express = /** @class */ (function () {
     // Set Vapid Details
     Express.prototype.setVapidDetails = function () {
         webPush.setVapidDetails('mailto:rainergonzalez@celebrity.com', process.env.VAPID_PUBLIC, process.env.VAPID_PRIVATE);
+    };
+    Express.prototype.setCronJob = function () {
+        new cron_1.CronJob('0,15,30,45 * * * *', function () {
+            report_controller_1.default.runCronJobReport();
+        }, null, true, 'UTC', this);
     };
     return Express;
 }());

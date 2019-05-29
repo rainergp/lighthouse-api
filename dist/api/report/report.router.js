@@ -11,6 +11,7 @@ var ReportRouter = /** @class */ (function () {
     // Init all routes in this router
     ReportRouter.prototype.init = function () {
         this.router.get('/', report_controller_1.default.getReport);
+        this.router.post('/', report_controller_1.default.postReport);
     };
     return ReportRouter;
 }());

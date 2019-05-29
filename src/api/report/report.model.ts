@@ -1,5 +1,4 @@
 import { Schema, model } from 'mongoose';
-import {DeviceType} from "../../models/device-type.enum";
 
 let schema: Schema = new Schema({
     id: Schema.Types.ObjectId,
