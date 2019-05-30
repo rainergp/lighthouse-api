@@ -213,7 +213,7 @@ var ReportController = /** @class */ (function () {
             var report = new report_model_1.default(parsedData);
             report.save()
                 .then(function (result) {
-                var id = './reports/' + result._doc._id.toString();
+                var id = './src/public/reports/' + result._doc._id.toString();
                 var filename = id + ".html";
                 var html = ReportGenerator.generateReport(results.lhr, 'html');
                 fs.writeFile(filename, html, function (err) {

@@ -215,7 +215,7 @@ export default class ReportController {
             report.save()
                 .then((result: any) => {
 
-                    let id = './reports/' + result._doc._id.toString();
+                    let id = './src/public/reports/' + result._doc._id.toString();
                     let filename = `${id}.html`;
                     let html = ReportGenerator.generateReport(results.lhr, 'html');
 

@@ -93,6 +93,7 @@ class Express {
         // Add cookie parser
         this.app.use(cookieParser());
 
+        this.app.use('/reports', express.static(__dirname + '/public/reports'));
     }
 
     // Set static files

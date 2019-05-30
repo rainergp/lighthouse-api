@@ -70,6 +70,7 @@ var Express = /** @class */ (function () {
         this.app.use(bodyParser.urlencoded({ extended: false }));
         // Add cookie parser
         this.app.use(cookieParser());
+        this.app.use('/reports', express.static(__dirname + '/public/reports'));
     };
     // Set static files
     Express.prototype.setStaticFiles = function () {
