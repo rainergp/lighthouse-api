@@ -9,7 +9,7 @@ import * as cors from "cors";
 import * as webPush from "web-push";
 import Routes from "./routes";
 import {CronJob} from 'cron';
-import ReportController from "../api/report/report.controller";
+import ReportController from "../controllers/api/report.controller";
 
 class Express {
 
@@ -117,7 +117,14 @@ class Express {
 
     private setCronJob() {
         new CronJob('0,15,30,45 * * * *', () => {
-            ReportController.runCronJobReport();
+            ReportController.runLighthouseAndSaveData()
+                .then(result => {
+                    console.log(result);
+                })
+                .catch(error => {
+                    //TODO: Implement error handler
+                    console.log(error)
+                })
         }, null, true, 'UTC', this);
     }
 }

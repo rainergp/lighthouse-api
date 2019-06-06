@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = require("express");
-var report_router_1 = require("../api/report/report.router");
-var subscription_router_1 = require("../api/subscription/subscription.router");
+var report_router_1 = require("../routes/api/report.router");
+var subscription_router_1 = require("../routes/api/subscription.router");
+var medians_report_router_1 = require("../routes/api/medians-report.router");
 var Routes = /** @class */ (function () {
     function Routes(app) {
         // Set router
@@ -17,6 +18,7 @@ var Routes = /** @class */ (function () {
         // Your routes goes here
         this.app.use('/api/subscription', subscription_router_1.default);
         this.app.use('/api/report', report_router_1.default);
+        this.app.use('/api/medians', medians_report_router_1.default);
         // Set main route for any other route found
         this.setMainRoute();
     };

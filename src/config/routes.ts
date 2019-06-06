@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import ReportRouter from '../api/report/report.router';
-import SubscriptionRouter from "../api/subscription/subscription.router";
+import ReportRouter from '../routes/api/report.router';
+import SubscriptionRouter from "../routes/api/subscription.router";
+import MediansReportRouter from "../routes/api/medians-report.router";
 
 export default class Routes {
 
@@ -25,6 +26,7 @@ export default class Routes {
         // Your routes goes here
         this.app.use('/api/subscription', SubscriptionRouter);
         this.app.use('/api/report', ReportRouter);
+        this.app.use('/api/medians', MediansReportRouter);
 
         // Set main route for any other route found
         this.setMainRoute();

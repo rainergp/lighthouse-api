@@ -11,7 +11,7 @@ var cors = require("cors");
 var webPush = require("web-push");
 var routes_1 = require("./routes");
 var cron_1 = require("cron");
-var report_controller_1 = require("../api/report/report.controller");
+var report_controller_1 = require("../controllers/api/report.controller");
 var Express = /** @class */ (function () {
     function Express() {
         this.envFile = 'src/config/env/.env';
@@ -88,7 +88,14 @@ var Express = /** @class */ (function () {
     };
     Express.prototype.setCronJob = function () {
         new cron_1.CronJob('0,15,30,45 * * * *', function () {
-            report_controller_1.default.runCronJobReport();
+            report_controller_1.default.runLighthouseAndSaveData()
+                .then(function (result) {
+                console.log(result);
+            })
+                .catch(function (error) {
+                //TODO: Implement error handler
+                console.log(error);
+            });
         }, null, true, 'UTC', this);
     };
     return Express;

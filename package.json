@@ -33,6 +33,7 @@
         "lighthouse": "^5.0.0",
         "lighthouse-batch": "^4.0.0",
         "lighthouse-logger": "^1.2.0",
+        "moment": "^2.24.0",
         "mongoose": "^5.5.8",
         "morgan": "^1.9.1",
         "path": "^0.12.7",
