@@ -10,6 +10,8 @@ import * as webPush from "web-push";
 import Routes from "./routes";
 import {CronJob} from 'cron';
 import ReportController from "../controllers/api/report.controller";
+import CronService from "../services/cron.service";
+import MediansReportController from "../controllers/api/medians-report.controller";
 
 class Express {
 
@@ -42,7 +44,7 @@ class Express {
         // Vapid Details
         this.setVapidDetails();
 
-        this.setCronJob();
+        this.setCronJobs();
     }
 
     // Set env from .env or .env.${NODE_ENV} file using dotenv
@@ -115,8 +117,8 @@ class Express {
         webPush.setVapidDetails('mailto:rainergonzalez@celebrity.com', process.env.VAPID_PUBLIC, process.env.VAPID_PRIVATE);
     }
 
-    private setCronJob() {
-        new CronJob('0,15,30,45 * * * *', () => {
+    private setCronJobs() {
+        CronService.setCronJob('0,15,30,45 * * * *', () => {
             ReportController.runLighthouseAndSaveData()
                 .then(result => {
                     console.log(result);
@@ -125,7 +127,18 @@ class Express {
                     //TODO: Implement error handler
                     console.log(error)
                 })
-        }, null, true, 'UTC', this);
+        });
+
+        CronService.setCronJob('5 0 * * *', () => {
+            MediansReportController.getDailyMetricsMediansAndSaveData()
+                .then(result => {
+                    console.log(result);
+                })
+                .catch(error => {
+                    //TODO: Implement error handler
+                    console.log(error)
+                })
+        });
     }
 }
 

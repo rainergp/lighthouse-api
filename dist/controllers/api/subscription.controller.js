@@ -48,13 +48,6 @@ var SubscriptionController = /** @class */ (function () {
     SubscriptionController.postSubscription = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                // SubscriptionService.getSubscriptions()
-                //     .then(result=> {
-                //         res.send(JSON.stringify(result))
-                //     })
-                //     .catch(error => {
-                //         res.send(JSON.stringify(error))
-                //     })
                 if (!SubscriptionController.isPostRequestValid(req, res)) {
                     return [2 /*return*/];
                 }

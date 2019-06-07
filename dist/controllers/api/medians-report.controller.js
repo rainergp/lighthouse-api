@@ -36,8 +36,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var moment = require("moment");
-var report_model_1 = require("../../models/api/report.model");
-var medians_report_model_1 = require("../../models/api/medians-report.model");
+var medians_report_service_1 = require("../../services/api/medians-report.service");
+var report_service_1 = require("../../services/api/report.service");
 var MediansReportController = /** @class */ (function () {
     function MediansReportController() {
     }
@@ -50,18 +50,10 @@ var MediansReportController = /** @class */ (function () {
     MediansReportController.postMediansReport = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                MediansReportController.getDailyMetricsMedians()
+                MediansReportController.getDailyMetricsMediansAndSaveData()
                     .then(function (result) {
-                    MediansReportController.saveIfNotExists(result)
-                        .then(function () {
-                        res.setHeader('Content-Type', 'application/json');
-                        res.send(JSON.stringify(result));
-                    })
-                        .catch(function (error) {
-                        res.status(500);
-                        res.setHeader('Content-Type', 'application/json');
-                        res.send(JSON.stringify(error));
-                    });
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify(result));
                 })
                     .catch(function (error) {
                     res.status(500);
@@ -72,63 +64,68 @@ var MediansReportController = /** @class */ (function () {
             });
         });
     };
-    MediansReportController.getDailyMetricsMedians = function () {
-        var start = moment.utc().subtract(1, 'days').startOf('day').format('YYYY-MM-DDTHH:mm:ss');
-        var end = moment.utc().subtract(1, 'days').endOf('day').format('YYYY-MM-DDTHH:mm:ss');
-        console.log(start);
-        console.log(end);
-        return new Promise(function (resolve, reject) {
-            report_model_1.default.find({ fetchTime: { $gte: start, $lte: end } }).sort({ _id: -1 }).exec()
-                .then(function (data) {
-                var idx = Math.floor(data.length / 2);
-                var deviceType = data[0].deviceType;
-                var requestedUrl = data[0].requestedUrl;
-                var performanceArr = [];
-                var firstContentfulPaintArr = [];
-                var firstMeaningfulPaintArr = [];
-                var speedIndexArr = [];
-                var firstCPUIdleArr = [];
-                var interactiveArr = [];
-                var estimatedInputLatencyArr = [];
-                var maxPotentialFIDArr = [];
-                data.forEach(function (item) {
-                    performanceArr.push(item.scores.performance);
-                    firstContentfulPaintArr.push(item.metrics.firstContentfulPaint.numericValue);
-                    firstMeaningfulPaintArr.push(item.metrics.firstMeaningfulPaint.numericValue);
-                    speedIndexArr.push(item.metrics.speedIndex.numericValue);
-                    firstCPUIdleArr.push(item.metrics.firstCPUIdle.numericValue);
-                    interactiveArr.push(item.metrics.interactive.numericValue);
-                    estimatedInputLatencyArr.push(item.metrics.estimatedInputLatency.numericValue);
-                    maxPotentialFIDArr.push(item.metrics.maxPotentialFID.numericValue);
-                });
-                resolve({
-                    timestamp: start,
-                    deviceType: deviceType,
-                    requestedUrl: requestedUrl,
-                    performance: Math.round(performanceArr.sort(function (n1, n2) { return n1 - n2; })[idx] * 100),
-                    firstContentfulPaint: parseFloat((firstContentfulPaintArr.sort(function (n1, n2) { return n1 - n2; })[idx] / 1000).toFixed(1)),
-                    firstMeaningfulPaint: parseFloat((firstMeaningfulPaintArr.sort(function (n1, n2) { return n1 - n2; })[idx] / 1000).toFixed(1)),
-                    speedIndex: parseFloat((speedIndexArr.sort(function (n1, n2) { return n1 - n2; })[idx] / 1000).toFixed(1)),
-                    firstCPUIdle: parseFloat((firstCPUIdleArr.sort(function (n1, n2) { return n1 - n2; })[idx] / 1000).toFixed(1)),
-                    interactive: parseFloat((interactiveArr.sort(function (n1, n2) { return n1 - n2; })[idx] / 1000).toFixed(1)),
-                    estimatedInputLatency: Math.round(estimatedInputLatencyArr.sort(function (n1, n2) { return n1 - n2; })[idx]),
-                    maxPotentialFID: Math.round(maxPotentialFIDArr.sort(function (n1, n2) { return n1 - n2; })[idx])
-                });
-            })
-                .catch(function (error) {
-                reject(error);
-            });
-        });
-    };
-    MediansReportController.saveIfNotExists = function (data) {
-        return new Promise(function (resolve, reject) {
-            medians_report_model_1.default.update({ timestamp: data.timestamp }, { $setOnInsert: data }, { upsert: true }, function (error, result) {
-                if (error) {
-                    reject(error);
-                    return;
+    MediansReportController.getDailyMetricsMediansAndSaveData = function () {
+        var _this = this;
+        return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+            var start, end, reportsList, mediansObject, _a, error_1;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _b.trys.push([0, 3, , 4]);
+                        start = moment.utc().subtract(1, 'days').startOf('day').format('YYYY-MM-DDTHH:mm:ss');
+                        end = moment.utc().subtract(1, 'days').endOf('day').format('YYYY-MM-DDTHH:mm:ss');
+                        return [4 /*yield*/, report_service_1.default.getReportsByDateRange(start, end)];
+                    case 1:
+                        reportsList = _b.sent();
+                        mediansObject = MediansReportController.parseDataAndBuildMediansObject(start, reportsList);
+                        _a = resolve;
+                        return [4 /*yield*/, medians_report_service_1.default.saveMediansReportIfNotExists(mediansObject)];
+                    case 2:
+                        _a.apply(void 0, [_b.sent()]);
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_1 = _b.sent();
+                        reject(error_1);
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
                 }
-                resolve(result);
             });
+        }); });
+    };
+    MediansReportController.parseDataAndBuildMediansObject = function (timestamp, data) {
+        var idx = Math.floor(data.length / 2);
+        var deviceType = data[0].deviceType;
+        var requestedUrl = data[0].requestedUrl;
+        var performanceArr = [];
+        var firstContentfulPaintArr = [];
+        var firstMeaningfulPaintArr = [];
+        var speedIndexArr = [];
+        var firstCPUIdleArr = [];
+        var interactiveArr = [];
+        var estimatedInputLatencyArr = [];
+        var maxPotentialFIDArr = [];
+        data.forEach(function (item) {
+            performanceArr.push(item.scores.performance);
+            firstContentfulPaintArr.push(item.metrics.firstContentfulPaint.numericValue);
+            firstMeaningfulPaintArr.push(item.metrics.firstMeaningfulPaint.numericValue);
+            speedIndexArr.push(item.metrics.speedIndex.numericValue);
+            firstCPUIdleArr.push(item.metrics.firstCPUIdle.numericValue);
+            interactiveArr.push(item.metrics.interactive.numericValue);
+            estimatedInputLatencyArr.push(item.metrics.estimatedInputLatency.numericValue);
+            maxPotentialFIDArr.push(item.metrics.maxPotentialFID.numericValue);
+        });
+        return ({
+            timestamp: timestamp,
+            deviceType: deviceType,
+            requestedUrl: requestedUrl,
+            performance: Math.round(performanceArr.sort(function (n1, n2) { return n1 - n2; })[idx] * 100),
+            firstContentfulPaint: parseFloat((firstContentfulPaintArr.sort(function (n1, n2) { return n1 - n2; })[idx] / 1000).toFixed(1)),
+            firstMeaningfulPaint: parseFloat((firstMeaningfulPaintArr.sort(function (n1, n2) { return n1 - n2; })[idx] / 1000).toFixed(1)),
+            speedIndex: parseFloat((speedIndexArr.sort(function (n1, n2) { return n1 - n2; })[idx] / 1000).toFixed(1)),
+            firstCPUIdle: parseFloat((firstCPUIdleArr.sort(function (n1, n2) { return n1 - n2; })[idx] / 1000).toFixed(1)),
+            interactive: parseFloat((interactiveArr.sort(function (n1, n2) { return n1 - n2; })[idx] / 1000).toFixed(1)),
+            estimatedInputLatency: Math.round(estimatedInputLatencyArr.sort(function (n1, n2) { return n1 - n2; })[idx]),
+            maxPotentialFID: Math.round(maxPotentialFIDArr.sort(function (n1, n2) { return n1 - n2; })[idx])
         });
     };
     return MediansReportController;

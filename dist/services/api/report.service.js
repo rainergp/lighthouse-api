@@ -27,6 +27,17 @@ var ReportService = /** @class */ (function () {
             });
         });
     };
+    ReportService.getReportsByDateRange = function (start, end) {
+        return new Promise(function (resolve, reject) {
+            report_model_1.default.find({ fetchTime: { $gte: start, $lte: end } }).sort({ _id: -1 }).exec()
+                .then(function (result) {
+                resolve(result);
+            })
+                .catch(function (error) {
+                reject(error);
+            });
+        });
+    };
     return ReportService;
 }());
 exports.default = ReportService;

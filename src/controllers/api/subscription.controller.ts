@@ -11,14 +11,6 @@ export default class SubscriptionController {
      */
     public static async postSubscription(req: Request, res: Response, next: NextFunction) {
 
-        // SubscriptionService.getSubscriptions()
-        //     .then(result=> {
-        //         res.send(JSON.stringify(result))
-        //     })
-        //     .catch(error => {
-        //         res.send(JSON.stringify(error))
-        //     })
-
         if (!SubscriptionController.isPostRequestValid(req, res)) {
             return;
         }

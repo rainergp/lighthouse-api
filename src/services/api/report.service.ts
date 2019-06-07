@@ -1,4 +1,5 @@
 import Report from "../../models/api/report.model";
+import * as moment from 'moment';
 
 export default class ReportService {
 
@@ -23,6 +24,20 @@ export default class ReportService {
             let report = new Report(data);
 
             report.save()
+                .then(result => {
+                    resolve(result)
+                })
+                .catch(error => {
+                    reject(error);
+                });
+        })
+    }
+
+    public static getReportsByDateRange(start, end) {
+
+        return new Promise((resolve, reject) => {
+
+            Report.find({fetchTime: {$gte: start, $lte: end}}).sort({_id: -1}).exec()
                 .then(result => {
                     resolve(result)
                 })

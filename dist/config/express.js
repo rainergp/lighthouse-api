@@ -10,8 +10,9 @@ var mongoose = require("mongoose");
 var cors = require("cors");
 var webPush = require("web-push");
 var routes_1 = require("./routes");
-var cron_1 = require("cron");
 var report_controller_1 = require("../controllers/api/report.controller");
+var cron_service_1 = require("../services/cron.service");
+var medians_report_controller_1 = require("../controllers/api/medians-report.controller");
 var Express = /** @class */ (function () {
     function Express() {
         this.envFile = 'src/config/env/.env';
@@ -31,7 +32,7 @@ var Express = /** @class */ (function () {
         this.setRoutes();
         // Vapid Details
         this.setVapidDetails();
-        this.setCronJob();
+        this.setCronJobs();
     }
     // Set env from .env or .env.${NODE_ENV} file using dotenv
     Express.prototype.setEnv = function () {
@@ -86,8 +87,8 @@ var Express = /** @class */ (function () {
     Express.prototype.setVapidDetails = function () {
         webPush.setVapidDetails('mailto:rainergonzalez@celebrity.com', process.env.VAPID_PUBLIC, process.env.VAPID_PRIVATE);
     };
-    Express.prototype.setCronJob = function () {
-        new cron_1.CronJob('0,15,30,45 * * * *', function () {
+    Express.prototype.setCronJobs = function () {
+        cron_service_1.default.setCronJob('0,15,30,45 * * * *', function () {
             report_controller_1.default.runLighthouseAndSaveData()
                 .then(function (result) {
                 console.log(result);
@@ -96,7 +97,17 @@ var Express = /** @class */ (function () {
                 //TODO: Implement error handler
                 console.log(error);
             });
-        }, null, true, 'UTC', this);
+        });
+        cron_service_1.default.setCronJob('5 0 * * *', function () {
+            medians_report_controller_1.default.getDailyMetricsMediansAndSaveData()
+                .then(function (result) {
+                console.log(result);
+            })
+                .catch(function (error) {
+                //TODO: Implement error handler
+                console.log(error);
+            });
+        });
     };
     return Express;
 }());
