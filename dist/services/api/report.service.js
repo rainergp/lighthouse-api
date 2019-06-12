@@ -6,7 +6,7 @@ var ReportService = /** @class */ (function () {
     }
     ReportService.getReport = function () {
         return new Promise(function (resolve, reject) {
-            report_model_1.default.find({}).sort({ _id: -1 }).limit(500).exec()
+            report_model_1.default.find({}).sort({ _id: -1 }).limit(672).exec()
                 .then(function (result) {
                 resolve(result);
             })

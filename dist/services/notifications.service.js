@@ -11,6 +11,7 @@ var NotificationsService = /** @class */ (function () {
                     title: 'New Data',
                     body: 'Your application data has been updated.',
                     icon: 'assets/icons/icon-512x512.png',
+                    vibrate: [100, 50, 100],
                 },
             };
             var promises = [];

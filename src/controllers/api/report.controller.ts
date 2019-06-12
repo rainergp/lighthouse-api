@@ -41,7 +41,7 @@ export default class ReportController {
         ReportController.runLighthouseAndSaveData()
             .then(data => {
                 res.setHeader('Content-Type', 'application/json');
-                res.send(JSON.stringify({ data }));
+                res.send(JSON.stringify(data));
             })
             .catch(error => {
                 res.status(500);
@@ -54,16 +54,22 @@ export default class ReportController {
         return new Promise(async (resolve, reject) => {
 
             try {
-                let lighthouseResult = await LighthouseService.launchHeadlessChromeAndRunLighthouse();
+                let lighthouseResults = [];
 
-                let parsedData = ReportController.parseData(lighthouseResult.lhr);
+                lighthouseResults.push({result: await LighthouseService.launchHeadlessChromeAndRunLighthouse(DeviceType.Desktop), device: DeviceType.Desktop});
 
-                let saveReportResult: any = await ReportService.saveReport(parsedData);
+                lighthouseResults.push({result: await LighthouseService.launchHeadlessChromeAndRunLighthouse(DeviceType.Mobile), device: DeviceType.Mobile});
 
-                let path = `./src/public/reports/${saveReportResult._doc._id.toString()}.html`;
-                let html = ReportGenerator.generateReport(lighthouseResult.lhr, 'html');
+                lighthouseResults.forEach(async (data: any) => {
+                    let parsedData = ReportController.parseData(data);
 
-                await FileService.writeFile(path, html);
+                    let saveReportResult: any = await ReportService.saveReport(parsedData);
+
+                    let path = `./src/public/reports/${saveReportResult._doc._id.toString()}.html`;
+                    let html = ReportGenerator.generateReport(data.result.lhr, 'html');
+
+                    await FileService.writeFile(path, html);
+                });
 
                 let subscriptionsList = await SubscriptionService.getSubscriptions();
 
@@ -75,7 +81,9 @@ export default class ReportController {
         });
     }
 
-    private static parseData(json): any {
+    private static parseData(data): any {
+
+        let json = data.result.lhr;
 
         let firstContentfulPaint = json.audits['first-contentful-paint'],
             firstMeaningfulPaint = json.audits['first-meaningful-paint'],
@@ -87,7 +95,7 @@ export default class ReportController {
             categories = json.categories;
 
         return new Report({
-            deviceType: DeviceType.Desktop,
+            deviceType: data.device,
             requestedUrl: json.requestedUrl,
             fetchTime: json.fetchTime,
 

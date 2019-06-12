@@ -1,5 +1,4 @@
 import Report from "../../models/api/report.model";
-import * as moment from 'moment';
 
 export default class ReportService {
 
@@ -7,7 +6,7 @@ export default class ReportService {
 
         return new Promise((resolve, reject) => {
 
-            Report.find({}).sort({_id: -1}).limit(500).exec()
+            Report.find({}).sort({_id: -1}).limit(672).exec()
                 .then(result => {
                     resolve(result)
                 })

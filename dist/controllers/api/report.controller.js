@@ -81,7 +81,7 @@ var ReportController = /** @class */ (function () {
                 ReportController.runLighthouseAndSaveData()
                     .then(function (data) {
                     res.setHeader('Content-Type', 'application/json');
-                    res.send(JSON.stringify({ data: data }));
+                    res.send(JSON.stringify(data));
                 })
                     .catch(function (error) {
                     res.status(500);
@@ -95,44 +95,63 @@ var ReportController = /** @class */ (function () {
     ReportController.runLighthouseAndSaveData = function () {
         var _this = this;
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            var lighthouseResult, parsedData, saveReportResult, path, html, subscriptionsList, _a, error_1;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var lighthouseResults, _a, _b, _c, _d, _e, _f, subscriptionsList, _g, error_1;
+            var _this = this;
+            return __generator(this, function (_h) {
+                switch (_h.label) {
                     case 0:
-                        _b.trys.push([0, 6, , 7]);
-                        return [4 /*yield*/, lighthouse_service_1.default.launchHeadlessChromeAndRunLighthouse()];
+                        _h.trys.push([0, 5, , 6]);
+                        lighthouseResults = [];
+                        _b = (_a = lighthouseResults).push;
+                        _c = {};
+                        return [4 /*yield*/, lighthouse_service_1.default.launchHeadlessChromeAndRunLighthouse(device_type_enum_1.DeviceType.Desktop)];
                     case 1:
-                        lighthouseResult = _b.sent();
-                        parsedData = ReportController.parseData(lighthouseResult.lhr);
-                        return [4 /*yield*/, report_service_1.default.saveReport(parsedData)];
+                        _b.apply(_a, [(_c.result = _h.sent(), _c.device = device_type_enum_1.DeviceType.Desktop, _c)]);
+                        _e = (_d = lighthouseResults).push;
+                        _f = {};
+                        return [4 /*yield*/, lighthouse_service_1.default.launchHeadlessChromeAndRunLighthouse(device_type_enum_1.DeviceType.Mobile)];
                     case 2:
-                        saveReportResult = _b.sent();
-                        path = "./src/public/reports/" + saveReportResult._doc._id.toString() + ".html";
-                        html = ReportGenerator.generateReport(lighthouseResult.lhr, 'html');
-                        return [4 /*yield*/, file_service_1.default.writeFile(path, html)];
-                    case 3:
-                        _b.sent();
+                        _e.apply(_d, [(_f.result = _h.sent(), _f.device = device_type_enum_1.DeviceType.Mobile, _f)]);
+                        lighthouseResults.forEach(function (data) { return __awaiter(_this, void 0, void 0, function () {
+                            var parsedData, saveReportResult, path, html;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        parsedData = ReportController.parseData(data);
+                                        return [4 /*yield*/, report_service_1.default.saveReport(parsedData)];
+                                    case 1:
+                                        saveReportResult = _a.sent();
+                                        path = "./src/public/reports/" + saveReportResult._doc._id.toString() + ".html";
+                                        html = ReportGenerator.generateReport(data.result.lhr, 'html');
+                                        return [4 /*yield*/, file_service_1.default.writeFile(path, html)];
+                                    case 2:
+                                        _a.sent();
+                                        return [2 /*return*/];
+                                }
+                            });
+                        }); });
                         return [4 /*yield*/, subscription_service_1.default.getSubscriptions()];
-                    case 4:
-                        subscriptionsList = _b.sent();
-                        _a = resolve;
+                    case 3:
+                        subscriptionsList = _h.sent();
+                        _g = resolve;
                         return [4 /*yield*/, notifications_service_1.default.sendNotifications(subscriptionsList)];
+                    case 4:
+                        _g.apply(void 0, [_h.sent()]);
+                        return [3 /*break*/, 6];
                     case 5:
-                        _a.apply(void 0, [_b.sent()]);
-                        return [3 /*break*/, 7];
-                    case 6:
-                        error_1 = _b.sent();
+                        error_1 = _h.sent();
                         reject(error_1);
-                        return [3 /*break*/, 7];
-                    case 7: return [2 /*return*/];
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
                 }
             });
         }); });
     };
-    ReportController.parseData = function (json) {
+    ReportController.parseData = function (data) {
+        var json = data.result.lhr;
         var firstContentfulPaint = json.audits['first-contentful-paint'], firstMeaningfulPaint = json.audits['first-meaningful-paint'], speedIndex = json.audits['speed-index'], firstCPUIdle = json.audits['first-cpu-idle'], interactive = json.audits['interactive'], estimatedInputLatency = json.audits['estimated-input-latency'], maxPotentialFID = json.audits['max-potential-fid'], categories = json.categories;
         return new report_model_1.default({
-            deviceType: device_type_enum_1.DeviceType.Desktop,
+            deviceType: data.device,
             requestedUrl: json.requestedUrl,
             fetchTime: json.fetchTime,
             metrics: {
