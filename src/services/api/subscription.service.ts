@@ -2,7 +2,7 @@ import Subscription from "../../models/api/subscription.model";
 
 export default class SubscriptionService {
 
-    public static getSubscriptions() {
+    public static getSubscriptions(): Promise<any[]> {
         return new Promise((resolve, reject) => {
 
             Subscription.find({}).exec()

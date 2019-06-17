@@ -7,6 +7,7 @@ import LighthouseService from "../../services/lighthouse.service";
 import FileService from "../../services/file.service";
 import NotificationsService from "../../services/notifications.service";
 import SubscriptionService from "../../services/api/subscription.service";
+import * as moment from 'moment';
 
 export default class ReportController {
 
@@ -17,7 +18,12 @@ export default class ReportController {
      * @param {*} next
      */
     public static async getReport(req: Request, res: Response, next: NextFunction) {
-        ReportService.getReport()
+
+        //Last 7 days
+        const start = moment.utc().subtract(168, 'h').startOf('minutes').format('YYYY-MM-DDTHH:mm:ss');
+        const end = moment.utc().format('YYYY-MM-DDTHH:mm:ss');
+
+        ReportService.getReportsByDateRange(start, end)
             .then(data => {
                 res.setHeader('Content-Type', 'application/json');
                 res.send(JSON.stringify({ data: data }));
@@ -56,6 +62,19 @@ export default class ReportController {
             try {
                 let lighthouseResults = [];
 
+                let urlsList = [
+                    'https://www.celebritycruises.com',
+                    'https://www.carnival.com',
+                    'https://disneycruise.disney.go.com',
+                    'https://www.hollandamerica.com',
+                    'https://www.ncl.com',
+                    'https://www.oceaniacruises.com',
+                    'https://www.princess.com',
+                    'https://www.royalcaribbean.com',
+                    'https://www.vikingcruises.com',
+
+                ];
+
                 lighthouseResults.push({result: await LighthouseService.launchHeadlessChromeAndRunLighthouse(DeviceType.Desktop), device: DeviceType.Desktop});
 
                 lighthouseResults.push({result: await LighthouseService.launchHeadlessChromeAndRunLighthouse(DeviceType.Mobile), device: DeviceType.Mobile});
@@ -71,9 +90,13 @@ export default class ReportController {
                     await FileService.writeFile(path, html);
                 });
 
-                let subscriptionsList = await SubscriptionService.getSubscriptions();
+                let subscriptionsList: any[] = await SubscriptionService.getSubscriptions();
 
-                resolve(await NotificationsService.sendNotifications(subscriptionsList));
+                if (subscriptionsList && subscriptionsList.length > 0) {
+                    resolve(await NotificationsService.sendNotifications(subscriptionsList));
+                }
+
+                resolve(true);
 
             } catch (error) {
                 reject(error)

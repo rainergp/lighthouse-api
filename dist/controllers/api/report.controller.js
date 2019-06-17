@@ -43,6 +43,7 @@ var lighthouse_service_1 = require("../../services/lighthouse.service");
 var file_service_1 = require("../../services/file.service");
 var notifications_service_1 = require("../../services/notifications.service");
 var subscription_service_1 = require("../../services/api/subscription.service");
+var moment = require("moment");
 var ReportController = /** @class */ (function () {
     function ReportController() {
     }
@@ -54,8 +55,11 @@ var ReportController = /** @class */ (function () {
      */
     ReportController.getReport = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
+            var start, end;
             return __generator(this, function (_a) {
-                report_service_1.default.getReport()
+                start = moment.utc().subtract(168, 'h').startOf('minutes').format('YYYY-MM-DDTHH:mm:ss');
+                end = moment.utc().format('YYYY-MM-DDTHH:mm:ss');
+                report_service_1.default.getReportsByDateRange(start, end)
                     .then(function (data) {
                     res.setHeader('Content-Type', 'application/json');
                     res.send(JSON.stringify({ data: data }));
@@ -95,13 +99,24 @@ var ReportController = /** @class */ (function () {
     ReportController.runLighthouseAndSaveData = function () {
         var _this = this;
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            var lighthouseResults, _a, _b, _c, _d, _e, _f, subscriptionsList, _g, error_1;
+            var lighthouseResults, urlsList, _a, _b, _c, _d, _e, _f, subscriptionsList, _g, error_1;
             var _this = this;
             return __generator(this, function (_h) {
                 switch (_h.label) {
                     case 0:
-                        _h.trys.push([0, 5, , 6]);
+                        _h.trys.push([0, 6, , 7]);
                         lighthouseResults = [];
+                        urlsList = [
+                            'https://www.celebritycruises.com',
+                            'https://www.carnival.com',
+                            'https://disneycruise.disney.go.com',
+                            'https://www.hollandamerica.com',
+                            'https://www.ncl.com',
+                            'https://www.oceaniacruises.com',
+                            'https://www.princess.com',
+                            'https://www.royalcaribbean.com',
+                            'https://www.vikingcruises.com',
+                        ];
                         _b = (_a = lighthouseResults).push;
                         _c = {};
                         return [4 /*yield*/, lighthouse_service_1.default.launchHeadlessChromeAndRunLighthouse(device_type_enum_1.DeviceType.Desktop)];
@@ -133,16 +148,20 @@ var ReportController = /** @class */ (function () {
                         return [4 /*yield*/, subscription_service_1.default.getSubscriptions()];
                     case 3:
                         subscriptionsList = _h.sent();
+                        if (!(subscriptionsList && subscriptionsList.length > 0)) return [3 /*break*/, 5];
                         _g = resolve;
                         return [4 /*yield*/, notifications_service_1.default.sendNotifications(subscriptionsList)];
                     case 4:
                         _g.apply(void 0, [_h.sent()]);
-                        return [3 /*break*/, 6];
+                        _h.label = 5;
                     case 5:
+                        resolve(true);
+                        return [3 /*break*/, 7];
+                    case 6:
                         error_1 = _h.sent();
                         reject(error_1);
-                        return [3 /*break*/, 6];
-                    case 6: return [2 /*return*/];
+                        return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
                 }
             });
         }); });

@@ -46,4 +46,18 @@ export default class ReportService {
         })
     }
 
+    public static getReportsByDateRangeAndDeviceType(start, end, deviceType) {
+
+        return new Promise((resolve, reject) => {
+
+            Report.find({$and: [{deviceType: deviceType}, {fetchTime: {$gte: start, $lte: end}}]}).sort({_id: -1}).exec()
+                .then(result => {
+                    resolve(result)
+                })
+                .catch(error => {
+                    reject(error);
+                });
+        })
+    }
+
 }

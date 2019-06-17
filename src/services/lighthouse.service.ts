@@ -25,29 +25,35 @@ export default class LighthouseService {
         const TARGET_DOWNLOAD_THROUGHPUT = Math.floor(12 * 1024);
         const TARGET_UPLOAD_THROUGHPUT = Math.floor(12 * 1024);
 
-        let opts = {
+        const mobileThrottlingSettings = {
+            // The round trip time in milliseconds
+            rttMs: TARGET_LATENCY,
+            // The network throughput in kilobytes per second
+            throughputKbps: TARGET_DOWNLOAD_THROUGHPUT,
+            // devtools settings
+            // The network request latency in milliseconds
+            requestLatencyMs: TARGET_LATENCY * DEVTOOLS_RTT_ADJUSTMENT_FACTOR,
+            // The network download throughput in kilobytes per second
+            downloadThroughputKbps: TARGET_DOWNLOAD_THROUGHPUT * DEVTOOLS_THROUGHPUT_ADJUSTMENT_FACTOR,
+            // The network upload throughput in kilobytes per second
+            uploadThroughputKbps:TARGET_UPLOAD_THROUGHPUT * DEVTOOLS_THROUGHPUT_ADJUSTMENT_FACTOR,
+            // used by both
+            // The amount of slowdown applied to the cpu (1/<cpuSlowdownMultiplier>)
+            cpuSlowdownMultiplier: 4,
+        };
+
+        let opts: any = {
             logLevel: 'info',
             chromeFlags: ['--headless', '--no-sandbox', '--disable-setuid-sandbox'],
             throttlingMethod: device === DeviceType.Desktop ? 'provided' : 'devtools',
-            emulatedFormFactor: device === DeviceType.Desktop ? 'none' : 'mobile',
-            throttling: device === DeviceType.Desktop ? {} : {
-                // The round trip time in milliseconds
-                rttMs: TARGET_LATENCY,
-                // The network throughput in kilobytes per second
-                throughputKbps: TARGET_DOWNLOAD_THROUGHPUT,
-                // devtools settings
-                // The network request latency in milliseconds
-                requestLatencyMs: TARGET_LATENCY * DEVTOOLS_RTT_ADJUSTMENT_FACTOR,
-                // The network download throughput in kilobytes per second
-                downloadThroughputKbps: TARGET_DOWNLOAD_THROUGHPUT * DEVTOOLS_THROUGHPUT_ADJUSTMENT_FACTOR,
-                // The network upload throughput in kilobytes per second
-                uploadThroughputKbps:TARGET_UPLOAD_THROUGHPUT * DEVTOOLS_THROUGHPUT_ADJUSTMENT_FACTOR,
-                // used by both
-                // The amount of slowdown applied to the cpu (1/<cpuSlowdownMultiplier>)
-                cpuSlowdownMultiplier: 4,
-            },
+            disableDeviceEmulation: false,
+            emulatedFormFactor: device === DeviceType.Desktop ? 'desktop' : 'mobile',
             port: null,
         };
+
+        if (device === DeviceType.Mobile) {
+            opts.throttling = mobileThrottlingSettings;
+        }
 
         LighthouseLogger.setLevel(opts.logLevel);
 

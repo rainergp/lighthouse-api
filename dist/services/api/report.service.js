@@ -38,6 +38,17 @@ var ReportService = /** @class */ (function () {
             });
         });
     };
+    ReportService.getReportsByDateRangeAndDeviceType = function (start, end, deviceType) {
+        return new Promise(function (resolve, reject) {
+            report_model_1.default.find({ $and: [{ deviceType: deviceType }, { fetchTime: { $gte: start, $lte: end } }] }).sort({ _id: -1 }).exec()
+                .then(function (result) {
+                resolve(result);
+            })
+                .catch(function (error) {
+                reject(error);
+            });
+        });
+    };
     return ReportService;
 }());
 exports.default = ReportService;

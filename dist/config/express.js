@@ -10,6 +10,7 @@ var mongoose = require("mongoose");
 var cors = require("cors");
 var webPush = require("web-push");
 var routes_1 = require("./routes");
+var report_controller_1 = require("../controllers/api/report.controller");
 var cron_service_1 = require("../services/cron.service");
 var medians_report_controller_1 = require("../controllers/api/medians-report.controller");
 var Express = /** @class */ (function () {
@@ -87,16 +88,16 @@ var Express = /** @class */ (function () {
         webPush.setVapidDetails('mailto:rainergonzalez@celebrity.com', process.env.VAPID_PUBLIC, process.env.VAPID_PRIVATE);
     };
     Express.prototype.setCronJobs = function () {
-        // CronService.setCronJob('0,15,30,45 * * * *', () => {
-        //     ReportController.runLighthouseAndSaveData()
-        //         .then(result => {
-        //             console.log(result);
-        //         })
-        //         .catch(error => {
-        //             //TODO: Implement error handler
-        //             console.log(error)
-        //         })
-        // });
+        cron_service_1.default.setCronJob('0,15,30,45 * * * *', function () {
+            report_controller_1.default.runLighthouseAndSaveData()
+                .then(function (result) {
+                console.log(result);
+            })
+                .catch(function (error) {
+                //TODO: Implement error handler
+                console.log(error);
+            });
+        });
         cron_service_1.default.setCronJob('5 0 * * *', function () {
             medians_report_controller_1.default.getDailyMetricsMediansAndSaveData()
                 .then(function (result) {

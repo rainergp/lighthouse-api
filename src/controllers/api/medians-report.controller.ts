@@ -3,6 +3,7 @@ import * as moment from 'moment';
 import Report from "../../models/api/report.model";
 import MediansReportService from "../../services/api/medians-report.service";
 import ReportService from "../../services/api/report.service";
+import {DeviceType} from "../../models/device-type.enum";
 
 export default class MediansReportController {
 
@@ -35,11 +36,22 @@ export default class MediansReportController {
                 const start = moment.utc().subtract(1, 'days').startOf('day').format('YYYY-MM-DDTHH:mm:ss');
                 const end = moment.utc().subtract(1, 'days').endOf('day').format('YYYY-MM-DDTHH:mm:ss');
 
-                let reportsList = await ReportService.getReportsByDateRange(start, end);
+                let reportsList: any;
+                let mediansObject: any;
 
-                let mediansObject = MediansReportController.parseDataAndBuildMediansObject(start, reportsList);
+                reportsList = await ReportService.getReportsByDateRangeAndDeviceType(start, end, DeviceType.Desktop);
+                if (reportsList.length > 0) {
+                    let mediansObject = MediansReportController.parseDataAndBuildMediansObject(start, reportsList, DeviceType.Desktop);
+                    await MediansReportService.saveMediansReportIfNotExists(mediansObject);
+                }
 
-                resolve(await MediansReportService.saveMediansReportIfNotExists(mediansObject))
+                reportsList = await ReportService.getReportsByDateRangeAndDeviceType(start, end, DeviceType.Mobile);
+                if (reportsList.length > 0) {
+                    mediansObject = MediansReportController.parseDataAndBuildMediansObject(start, reportsList, DeviceType.Mobile);
+                    await MediansReportService.saveMediansReportIfNotExists(mediansObject);
+                }
+
+                resolve(true);
 
             } catch (error) {
                 reject(error)
@@ -47,9 +59,8 @@ export default class MediansReportController {
         });
     }
 
-    private static parseDataAndBuildMediansObject(timestamp, data: any) {
+    private static parseDataAndBuildMediansObject(timestamp, data: any, deviceType) {
         let idx = Math.floor(data.length / 2);
-        let deviceType = data[0].deviceType;
         let requestedUrl = data[0].requestedUrl;
         let performanceArr = [];
         let firstContentfulPaintArr = [];

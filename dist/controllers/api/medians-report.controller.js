@@ -38,6 +38,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var moment = require("moment");
 var medians_report_service_1 = require("../../services/api/medians-report.service");
 var report_service_1 = require("../../services/api/report.service");
+var device_type_enum_1 = require("../../models/device-type.enum");
 var MediansReportController = /** @class */ (function () {
     function MediansReportController() {
     }
@@ -67,34 +68,47 @@ var MediansReportController = /** @class */ (function () {
     MediansReportController.getDailyMetricsMediansAndSaveData = function () {
         var _this = this;
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            var start, end, reportsList, mediansObject, _a, error_1;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var start, end, reportsList, mediansObject, mediansObject_1, error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
-                        _b.trys.push([0, 3, , 4]);
+                        _a.trys.push([0, 7, , 8]);
                         start = moment.utc().subtract(1, 'days').startOf('day').format('YYYY-MM-DDTHH:mm:ss');
                         end = moment.utc().subtract(1, 'days').endOf('day').format('YYYY-MM-DDTHH:mm:ss');
-                        return [4 /*yield*/, report_service_1.default.getReportsByDateRange(start, end)];
+                        reportsList = void 0;
+                        mediansObject = void 0;
+                        return [4 /*yield*/, report_service_1.default.getReportsByDateRangeAndDeviceType(start, end, device_type_enum_1.DeviceType.Desktop)];
                     case 1:
-                        reportsList = _b.sent();
-                        mediansObject = MediansReportController.parseDataAndBuildMediansObject(start, reportsList);
-                        _a = resolve;
-                        return [4 /*yield*/, medians_report_service_1.default.saveMediansReportIfNotExists(mediansObject)];
+                        reportsList = _a.sent();
+                        if (!(reportsList.length > 0)) return [3 /*break*/, 3];
+                        mediansObject_1 = MediansReportController.parseDataAndBuildMediansObject(start, reportsList, device_type_enum_1.DeviceType.Desktop);
+                        return [4 /*yield*/, medians_report_service_1.default.saveMediansReportIfNotExists(mediansObject_1)];
                     case 2:
-                        _a.apply(void 0, [_b.sent()]);
-                        return [3 /*break*/, 4];
-                    case 3:
-                        error_1 = _b.sent();
+                        _a.sent();
+                        _a.label = 3;
+                    case 3: return [4 /*yield*/, report_service_1.default.getReportsByDateRangeAndDeviceType(start, end, device_type_enum_1.DeviceType.Mobile)];
+                    case 4:
+                        reportsList = _a.sent();
+                        if (!(reportsList.length > 0)) return [3 /*break*/, 6];
+                        mediansObject = MediansReportController.parseDataAndBuildMediansObject(start, reportsList, device_type_enum_1.DeviceType.Mobile);
+                        return [4 /*yield*/, medians_report_service_1.default.saveMediansReportIfNotExists(mediansObject)];
+                    case 5:
+                        _a.sent();
+                        _a.label = 6;
+                    case 6:
+                        resolve(true);
+                        return [3 /*break*/, 8];
+                    case 7:
+                        error_1 = _a.sent();
                         reject(error_1);
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
+                        return [3 /*break*/, 8];
+                    case 8: return [2 /*return*/];
                 }
             });
         }); });
     };
-    MediansReportController.parseDataAndBuildMediansObject = function (timestamp, data) {
+    MediansReportController.parseDataAndBuildMediansObject = function (timestamp, data, deviceType) {
         var idx = Math.floor(data.length / 2);
-        var deviceType = data[0].deviceType;
         var requestedUrl = data[0].requestedUrl;
         var performanceArr = [];
         var firstContentfulPaintArr = [];

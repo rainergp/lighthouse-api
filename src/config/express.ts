@@ -8,7 +8,6 @@ import * as mongoose from "mongoose";
 import * as cors from "cors";
 import * as webPush from "web-push";
 import Routes from "./routes";
-import {CronJob} from 'cron';
 import ReportController from "../controllers/api/report.controller";
 import CronService from "../services/cron.service";
 import MediansReportController from "../controllers/api/medians-report.controller";
