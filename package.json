@@ -29,7 +29,7 @@
         "cron": "^1.7.1",
         "dotenv": "^8.0.0",
         "ejs": "^2.6.1",
-        "express": "^4.16.4",
+        "express": "^4.17.3",
         "lighthouse": "^5.1.0",
         "lighthouse-batch": "^4.2.0",
         "lighthouse-logger": "^1.2.0",
